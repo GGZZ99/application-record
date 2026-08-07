@@ -1,0 +1,18 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+.vscode/
+.idea/
+
+# Personal runtime data (keep folder placeholders + example template)
+data/store.json
+data/screenshots/*
+!data/screenshots/.gitkeep
+data/resume/*
+!data/resume/.gitkeep
+
+# Local overrides
+.env
+.env.*

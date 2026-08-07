@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "fields": [
+    {
+      "key": "company",
+      "label": "公司",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "position",
+      "label": "岗位",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "status",
+      "label": "状态",
+      "type": "select",
+      "options": [
+        "待投递",
+        "已投递",
+        "测评",
+        "笔试",
+        "面试",
+        "Offer",
+        "已拒绝",
+        "已放弃"
+      ]
+    },
+    {
+      "key": "applyDate",
+      "label": "投递时间",
+      "type": "date"
+    },
+    {
+      "key": "assessment",
+      "label": "测评",
+      "type": "date"
+    },
+    {
+      "key": "writtenTest",
+      "label": "笔试",
+      "type": "date"
+    },
+    {
+      "key": "interview",
+      "label": "面试",
+      "type": "date"
+    },
+    {
+      "key": "offer",
+      "label": "Offer",
+      "type": "date"
+    },
+    {
+      "key": "notes",
+      "label": "备注",
+      "type": "textarea"
+    },
+    {
+      "key": "screenshots",
+      "label": "截图",
+      "type": "screenshots"
+    }
+  ],
+  "records": []
+}

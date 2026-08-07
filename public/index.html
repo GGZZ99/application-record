@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>应聘记录</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="bg-atmosphere" aria-hidden="true"></div>
+
+    <div class="app">
+      <header class="site-header">
+        <nav class="main-nav" aria-label="主导航">
+          <button type="button" class="nav-tab is-active" id="nav-records" data-view="records" aria-current="page">
+            应聘记录
+          </button>
+          <button type="button" class="nav-tab" id="nav-resume" data-view="resume">
+            我的简历
+          </button>
+        </nav>
+      </header>
+
+      <section id="view-records" class="view view-records">
+        <div class="view-toolbar">
+          <p class="view-meta" id="record-count">加载中…</p>
+          <div class="toolbar">
+            <label class="search-field">
+              <span class="sr-only">搜索公司或岗位</span>
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.75" />
+                <path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+              </svg>
+              <input id="search-input" type="search" placeholder="搜索公司 / 岗位" autocomplete="off" />
+            </label>
+
+            <label class="filter-field">
+              <span class="sr-only">按状态筛选</span>
+              <select id="status-filter">
+                <option value="">全部状态</option>
+              </select>
+            </label>
+
+            <button type="button" class="btn btn-ghost" id="btn-fields">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16M4 12h10M4 17h13" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+              </svg>
+              字段管理
+            </button>
+
+            <button type="button" class="btn btn-primary" id="btn-add">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+              </svg>
+              新增记录
+            </button>
+          </div>
+        </div>
+
+        <div id="list-panel" class="list-panel" aria-live="polite"></div>
+      </section>
+
+      <section id="view-resume" class="view view-resume" hidden>
+        <div class="resume-shell">
+          <aside class="resume-left">
+            <header class="resume-panel-header">
+              <div>
+                <h2>文件列表</h2>
+                <p class="resume-dir">目录：data/resume/</p>
+              </div>
+              <div class="resume-panel-actions">
+                <button type="button" class="btn btn-primary" id="btn-resume-new">新增记录</button>
+                <button type="button" class="btn btn-ghost" id="btn-resume-refresh">刷新</button>
+                <a class="btn btn-secondary" id="btn-resume-open" href="#" target="_blank" rel="noopener" hidden>新窗口</a>
+              </div>
+            </header>
+            <ul id="resume-file-list" class="resume-file-list"></ul>
+          </aside>
+          <section class="resume-preview" id="resume-preview" aria-live="polite">
+            <div class="resume-preview-empty">
+              <h3>选择文件预览</h3>
+              <p>点「新增记录」写 Markdown 笔记，或将 PDF / Word / 图片放到 <code>data/resume/</code>。</p>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <!-- Record editor -->
+    <div class="modal-root" id="record-modal" hidden>
+      <div class="modal-backdrop" data-close="record"></div>
+      <div class="modal sheet" role="dialog" aria-modal="true" aria-labelledby="record-modal-title">
+        <header class="modal-header">
+          <h2 id="record-modal-title">新增记录</h2>
+          <button type="button" class="icon-btn" data-close="record" aria-label="关闭">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+        <form id="record-form" class="modal-body form-grid"></form>
+        <footer class="modal-footer">
+          <button type="button" class="btn btn-danger-ghost" id="btn-delete-record" hidden>删除</button>
+          <div class="footer-spacer"></div>
+          <button type="button" class="btn btn-ghost" data-close="record">取消</button>
+          <button type="submit" form="record-form" class="btn btn-primary" id="btn-save-record">保存</button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Field manager -->
+    <div class="modal-root" id="fields-modal" hidden>
+      <div class="modal-backdrop" data-close="fields"></div>
+      <div class="modal sheet sheet-wide" role="dialog" aria-modal="true" aria-labelledby="fields-modal-title">
+        <header class="modal-header">
+          <h2 id="fields-modal-title">字段管理</h2>
+          <button type="button" class="icon-btn" data-close="fields" aria-label="关闭">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+        <div class="modal-body fields-body">
+          <ul id="fields-list" class="fields-list"></ul>
+          <p class="fields-hint">拖动字段左侧手柄可调整列表列顺序</p>
+          <form id="field-add-form" class="field-add-form">
+            <h3>添加字段</h3>
+            <div class="form-grid form-grid-compact">
+              <label>
+                <span>显示名</span>
+                <input name="label" required maxlength="40" placeholder="例如：城市" />
+              </label>
+              <label>
+                <span>字段键</span>
+                <input name="key" required maxlength="40" pattern="[A-Za-z_][A-Za-z0-9_]*" placeholder="例如：city" title="字母或下划线开头，仅字母数字下划线" />
+              </label>
+              <label>
+                <span>类型</span>
+                <select name="type">
+                  <option value="text">文本</option>
+                  <option value="date">日期</option>
+                  <option value="select">选项</option>
+                  <option value="textarea">多行文本</option>
+                </select>
+              </label>
+              <label class="span-2" id="options-label" hidden>
+                <span>选项（逗号分隔）</span>
+                <input name="options" placeholder="例如：A, B, C" />
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" name="required" />
+                <span>必填</span>
+              </label>
+            </div>
+            <button type="submit" class="btn btn-secondary">添加字段</button>
+          </form>
+        </div>
+        <footer class="modal-footer">
+          <div class="footer-spacer"></div>
+          <button type="button" class="btn btn-primary" data-close="fields">完成</button>
+        </footer>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <div class="lightbox" id="lightbox" hidden>
+      <div class="lightbox-backdrop" data-close-lightbox></div>
+      <figure class="lightbox-figure">
+        <button type="button" class="icon-btn lightbox-close" data-close-lightbox aria-label="关闭预览">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+          </svg>
+        </button>
+        <img id="lightbox-img" alt="截图预览" />
+      </figure>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

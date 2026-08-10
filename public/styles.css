@@ -28,7 +28,7 @@
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-  --max: 1120px;
+  --max: min(1680px, calc(100vw - 48px));
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --dur: 180ms;
 }
@@ -782,15 +782,21 @@ html:has(body.resume-mode) {
 .records-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 720px;
+  min-width: 1480px;
+  table-layout: auto;
 }
 
 .records-table th,
 .records-table td {
-  padding: 14px 16px;
+  padding: 12px 14px;
   text-align: left;
   border-bottom: 1px solid rgba(191, 219, 254, 0.7);
-  vertical-align: top;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.records-table td.shot-cell {
+  white-space: normal;
 }
 
 .records-table th {
@@ -818,14 +824,16 @@ html:has(body.resume-mode) {
 
 .cell-main {
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .cell-sub {
-  display: block;
-  margin-top: 2px;
+  display: inline;
+  margin-left: 8px;
   color: var(--color-muted-fg);
   font-size: 0.875rem;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 .cell-muted {
@@ -834,12 +842,13 @@ html:has(body.resume-mode) {
 }
 
 .cell-notes {
-  max-width: 240px;
+  display: inline-block;
+  max-width: 220px;
   color: var(--color-muted-fg);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
 }
 
 .status-pill {

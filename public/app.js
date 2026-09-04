@@ -30,6 +30,8 @@ const els = {
   resumeFileList: $("#resume-file-list"),
   resumePreview: $("#resume-preview"),
   resumeOpenBtn: $("#btn-resume-open"),
+  resumeDirLabel: $("#resume-dir-label"),
+  resumeCrumb: $("#resume-crumb"),
   toast: $("#toast"),
   lightbox: $("#lightbox"),
   lightboxImg: $("#lightbox-img"),
@@ -42,6 +44,7 @@ const modalMap = {
 
 let resumeFiles = [];
 let resumeSelected = null;
+let resumePath = "";
 let currentView = "records";
 let mammothLoading = null;
 let markedLoading = null;
@@ -107,7 +110,7 @@ function statusField() {
 function statusTone(status) {
   if (!status) return "progress";
   if (status === "Offer") return "offer";
-  if (status === "已拒绝" || status === "已放弃") return "reject";
+  if (status === "已拒绝" || status === "已放弃" || status === "已终止") return "reject";
   if (status === "待投递") return "accent";
   return "progress";
 }
@@ -480,10 +483,11 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function kindLabel(kind) {
+function kindLabel(kind, file) {
+  if (kind === "folder") return "文件夹";
+  if (kind === "image") return file?.imageType || "图片";
   return (
     {
-      image: "图片",
       pdf: "PDF",
       docx: "Word",
       doc: "Word",
@@ -492,6 +496,28 @@ function kindLabel(kind) {
       other: "文件",
     }[kind] || "文件"
   );
+}
+
+function resumeJoinPath(...parts) {
+  return parts.filter(Boolean).join("/");
+}
+
+function resumeParentPath(rel) {
+  if (!rel) return "";
+  const parts = rel.split("/").filter(Boolean);
+  parts.pop();
+  return parts.join("/");
+}
+
+function folderIconSvg() {
+  return `<svg class="resume-item-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-10Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/></svg>`;
+}
+
+function fileIconSvg(kind) {
+  if (kind === "image") {
+    return `<svg class="resume-item-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><path d="m8 16 3-3 2 2 3-4 3 5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+  return `<svg class="resume-item-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7l3 3v13H7V4z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M14 4v3h3" fill="none" stroke="currentColor" stroke-width="1.75"/></svg>`;
 }
 
 async function ensureMammoth() {
@@ -554,7 +580,14 @@ function openMdWorkspace({ filename = null, title = "", body = "", mode = "edit"
   mdNote.title = title;
   mdNote.body = body;
   mdNote.mode = mode;
-  resumeSelected = filename ? resumeFiles.find((f) => f.name === filename) || { name: filename, url: `/resume-files/${encodeURIComponent(filename)}`, kind: "markdown" } : null;
+  resumeSelected = filename
+    ? resumeFiles.find((f) => f.path === filename || f.name === filename) || {
+        name: filename.split("/").pop(),
+        path: filename,
+        url: `/resume-files/${filename.split("/").map(encodeURIComponent).join("/")}`,
+        kind: "markdown",
+      }
+    : null;
   renderResumeFileList();
   if (resumeSelected) {
     els.resumeOpenBtn.hidden = false;
@@ -578,7 +611,7 @@ async function openMdNoteFile(file) {
   const text = await (await fetch(file.url)).text();
   const parsed = parseMdNote(text);
   openMdWorkspace({
-    filename: file.name,
+    filename: file.path || file.name,
     title: parsed.title || file.name.replace(/\.md$/i, ""),
     body: parsed.body,
     mode: "preview",
@@ -679,13 +712,14 @@ async function saveMdNote() {
         title,
         body: mdNote.body,
         filename: mdNote.filename,
+        folder: resumePath,
       }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "保存失败");
     mdNote.filename = data.filename;
-    await loadResumeList();
-    const file = resumeFiles.find((f) => f.name === data.filename);
+    await loadResumeList(resumePath);
+    const file = resumeFiles.find((f) => f.path === data.filename || f.name === data.filename);
     if (file) {
       resumeSelected = file;
       els.resumeOpenBtn.hidden = false;
@@ -711,49 +745,122 @@ function showResumeEmpty() {
   `;
 }
 
-async function loadResumeList() {
-  const res = await fetch("/api/resume");
+async function loadResumeList(path = resumePath) {
+  resumePath = path || "";
+  const q = resumePath ? `?path=${encodeURIComponent(resumePath)}` : "";
+  const res = await fetch(`/api/resume${q}`);
   if (!res.ok) throw new Error("无法读取简历目录");
   const data = await res.json();
   resumeFiles = Array.isArray(data.files) ? data.files : [];
+  if (els.resumeDirLabel) {
+    els.resumeDirLabel.textContent = `目录：${data.dir || "data/resume"}/`;
+  }
+  renderResumeCrumb();
   renderResumeFileList();
   if (mdNote.active && mdNote.filename) {
-    const still = resumeFiles.find((f) => f.name === mdNote.filename);
+    const still = resumeFiles.find((f) => f.path === mdNote.filename || f.name === mdNote.filename);
     if (still) resumeSelected = still;
   } else if (resumeSelected && !mdNote.active) {
-    const still = resumeFiles.find((f) => f.name === resumeSelected.name);
+    const still = resumeFiles.find((f) => f.path === resumeSelected.path || f.name === resumeSelected.name);
     if (still) await previewResumeFile(still);
-    else {
+    else if (resumeSelected.type === "dir") {
+      resumeSelected = null;
+    } else {
       resumeSelected = null;
       showResumeEmpty();
     }
   }
 }
 
+function renderResumeCrumb() {
+  if (!els.resumeCrumb) return;
+  if (!resumePath) {
+    els.resumeCrumb.hidden = true;
+    els.resumeCrumb.innerHTML = "";
+    return;
+  }
+  const parts = resumePath.split("/").filter(Boolean);
+  let acc = "";
+  const crumbs = [
+    `<button type="button" class="resume-crumb-btn" data-resume-path="">根目录</button>`,
+  ];
+  parts.forEach((part, idx) => {
+    acc = resumeJoinPath(acc, part);
+    const isLast = idx === parts.length - 1;
+    crumbs.push(`<span class="resume-crumb-sep">/</span>`);
+    if (isLast) {
+      crumbs.push(`<span class="resume-crumb-current">${escapeHtml(part)}</span>`);
+    } else {
+      crumbs.push(
+        `<button type="button" class="resume-crumb-btn" data-resume-path="${escapeHtml(acc)}">${escapeHtml(part)}</button>`
+      );
+    }
+  });
+  els.resumeCrumb.hidden = false;
+  els.resumeCrumb.innerHTML = crumbs.join("");
+}
+
 function renderResumeFileList() {
   if (!resumeFiles.length) {
     els.resumeFileList.innerHTML = `
       <li class="resume-preview-fallback" style="min-height:auto;padding:12px 0;place-content:start">
-        <p>目录为空。点「新增记录」创建 Markdown，或把文件放进 <code>data/resume/</code>。</p>
+        <p>${
+          resumePath
+            ? "当前文件夹为空。"
+            : "目录为空。点「新增记录」创建 Markdown，或把文件/文件夹放进 <code>data/resume/</code>。"
+        }</p>
       </li>
     `;
     return;
   }
 
-  const activeName = mdNote.active && mdNote.filename ? mdNote.filename : resumeSelected?.name;
+  const activePath = mdNote.active && mdNote.filename ? mdNote.filename : resumeSelected?.path || resumeSelected?.name;
   els.resumeFileList.innerHTML = resumeFiles
     .map((file) => {
-      const active = activeName === file.name ? "is-active" : "";
+      const key = file.path || file.name;
+      const active = activePath === key ? "is-active" : "";
+      if (file.type === "dir" || file.kind === "folder") {
+        return `
+          <li>
+            <button type="button" class="resume-file-item resume-file-item--folder ${active}" data-resume-path="${escapeHtml(key)}">
+              <span class="resume-file-leading">${folderIconSvg()}</span>
+              <span class="resume-file-meta">
+                <strong>${escapeHtml(file.name)}</strong>
+                <span>文件夹 · ${file.count ?? 0} 项</span>
+              </span>
+            </button>
+          </li>
+        `;
+      }
+
+      const typeText = kindLabel(file.kind, file);
+      const sizeText = formatBytes(file.size);
+      const thumb =
+        file.kind === "image" && file.url
+          ? `<img class="resume-thumb" src="${escapeHtml(file.url)}" alt="" loading="lazy" />`
+          : `<span class="resume-file-leading">${fileIconSvg(file.kind)}</span>`;
+
       return `
         <li>
-          <button type="button" class="resume-file-item ${active}" data-resume-name="${escapeHtml(file.name)}">
-            <strong>${escapeHtml(file.name)}</strong>
-            <span>${kindLabel(file.kind)} · ${formatBytes(file.size)}</span>
+          <button type="button" class="resume-file-item ${file.kind === "image" ? "resume-file-item--image" : ""} ${active}" data-resume-name="${escapeHtml(key)}">
+            ${thumb}
+            <span class="resume-file-meta">
+              <strong>${escapeHtml(file.name)}</strong>
+              <span>${escapeHtml(typeText)}${sizeText ? ` · ${sizeText}` : ""}</span>
+            </span>
           </button>
         </li>
       `;
     })
     .join("");
+}
+
+async function openResumeFolder(path) {
+  mdNote.active = false;
+  resumeSelected = null;
+  els.resumeOpenBtn.hidden = true;
+  showResumeEmpty();
+  await loadResumeList(path);
 }
 
 async function previewResumeFile(file) {
@@ -772,7 +879,12 @@ async function previewResumeFile(file) {
 
   try {
     if (file.kind === "image") {
-      els.resumePreview.innerHTML = `<img src="${escapeHtml(file.url)}" alt="${escapeHtml(file.name)}" />`;
+      els.resumePreview.innerHTML = `
+        <div class="resume-image-preview">
+          <img src="${escapeHtml(file.url)}" alt="${escapeHtml(file.name)}" />
+          <p class="resume-image-caption">${escapeHtml(file.name)} · ${escapeHtml(kindLabel(file.kind, file))}</p>
+        </div>
+      `;
       return;
     }
 
@@ -1262,14 +1374,25 @@ function bindEvents() {
   });
   $("#btn-resume-new").addEventListener("click", () => startNewMdNote());
   $("#btn-resume-refresh").addEventListener("click", () => {
-    loadResumeList().catch((err) => toast(err.message || "刷新失败", "error"));
+    loadResumeList(resumePath).catch((err) => toast(err.message || "刷新失败", "error"));
   });
   els.resumeFileList.addEventListener("click", (e) => {
+    const folderBtn = e.target.closest("[data-resume-path]");
+    if (folderBtn && folderBtn.classList.contains("resume-file-item--folder")) {
+      openResumeFolder(folderBtn.dataset.resumePath).catch((err) => toast(err.message || "打开失败", "error"));
+      return;
+    }
     const btn = e.target.closest("[data-resume-name]");
     if (!btn) return;
-    const file = resumeFiles.find((f) => f.name === btn.dataset.resumeName);
+    const key = btn.dataset.resumeName;
+    const file = resumeFiles.find((f) => f.path === key || f.name === key);
     if (!file) return;
     previewResumeFile(file).catch((err) => toast(err.message || "预览失败", "error"));
+  });
+  els.resumeCrumb?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-resume-path]");
+    if (!btn) return;
+    openResumeFolder(btn.dataset.resumePath || "").catch((err) => toast(err.message || "打开失败", "error"));
   });
   els.search.addEventListener("input", renderList);
   els.statusFilter.addEventListener("change", renderList);

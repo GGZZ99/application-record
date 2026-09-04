@@ -185,6 +185,34 @@ html:has(body.resume-mode) {
   font-weight: 600;
 }
 
+.resume-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+
+.resume-crumb-btn {
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 600;
+  padding: 0;
+  min-height: auto;
+  cursor: pointer;
+}
+
+.resume-crumb-btn:hover {
+  text-decoration: underline;
+}
+
+.resume-crumb-sep,
+.resume-crumb-current {
+  color: var(--color-muted-fg);
+}
+
 .resume-file-list {
   list-style: none;
   margin: 0;
@@ -194,6 +222,8 @@ html:has(body.resume-mode) {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.9);
+  max-height: calc(100vh - 220px);
+  overflow: auto;
 }
 
 .resume-file-item {
@@ -204,7 +234,9 @@ html:has(body.resume-mode) {
   background: transparent;
   padding: 10px 12px;
   display: grid;
-  gap: 2px;
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
+  align-items: center;
   transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 
@@ -217,6 +249,45 @@ html:has(body.resume-mode) {
   border-color: var(--color-border-strong);
 }
 
+.resume-file-item--folder {
+  grid-template-columns: 28px 1fr;
+}
+
+.resume-file-leading,
+.resume-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--color-muted);
+  border: 1px solid var(--color-border);
+}
+
+.resume-file-leading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+}
+
+.resume-file-item--folder .resume-file-leading {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+}
+
+.resume-item-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.resume-file-meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
 .resume-file-item strong {
   font-size: 0.92rem;
   word-break: break-all;
@@ -225,6 +296,31 @@ html:has(body.resume-mode) {
 .resume-file-item span {
   color: var(--color-muted-fg);
   font-size: 0.78rem;
+}
+
+.resume-image-preview {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #0f172a;
+}
+
+.resume-image-preview img {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+  background: #0f172a;
+}
+
+.resume-image-caption {
+  margin: 0;
+  padding: 10px 14px;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  background: rgba(15, 23, 42, 0.92);
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
 }
 
 /* Right half of the screen, top to bottom */

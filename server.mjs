@@ -114,12 +114,29 @@ function safeScreenshotName(name) {
   return name;
 }
 
-function safeResumeName(name) {
-  if (!name || typeof name !== "string") return null;
-  if (name.includes("\0") || name.includes("/") || name.includes("\\") || name.includes("..")) return null;
-  const resolved = path.resolve(RESUME_DIR, name);
+function safeResumeRelPath(relPath) {
+  if (relPath == null) return "";
+  if (typeof relPath !== "string") return null;
+  const normalized = relPath.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+  if (!normalized) return "";
+  if (normalized.includes("\0")) return null;
+  const parts = normalized.split("/");
+  if (parts.some((p) => !p || p === "." || p === "..")) return null;
+  const resolved = path.resolve(RESUME_DIR, ...parts);
   if (resolved !== RESUME_DIR && !resolved.startsWith(RESUME_DIR + path.sep)) return null;
-  return name;
+  return normalized;
+}
+
+function resumeAbsPath(relPath) {
+  const safe = safeResumeRelPath(relPath);
+  if (safe == null) return null;
+  return safe ? path.join(RESUME_DIR, ...safe.split("/")) : RESUME_DIR;
+}
+
+function resumePublicUrl(relPath) {
+  const safe = safeResumeRelPath(relPath);
+  if (safe == null || safe === "") return null;
+  return `/resume-files/${safe.split("/").map(encodeURIComponent).join("/")}`;
 }
 
 function resumeKind(ext) {
@@ -130,6 +147,19 @@ function resumeKind(ext) {
   if (ext === ".md") return "markdown";
   if (ext === ".txt") return "text";
   return "other";
+}
+
+function imageTypeLabel(ext) {
+  return (
+    {
+      ".png": "PNG",
+      ".jpg": "JPG",
+      ".jpeg": "JPEG",
+      ".webp": "WEBP",
+      ".gif": "GIF",
+      ".svg": "SVG",
+    }[ext] || "图片"
+  );
 }
 
 function slugNoteBase(title) {
@@ -144,24 +174,75 @@ function slugNoteBase(title) {
 
 async function handleResumeList(req, res) {
   await ensureDirs();
-  const entries = await fs.readdir(RESUME_DIR, { withFileTypes: true });
+  const url = new URL(req.url || "/", `http://${HOST}`);
+  const rel = safeResumeRelPath(url.searchParams.get("path") || "");
+  if (rel == null) {
+    send(res, 400, { error: "Invalid path" });
+    return;
+  }
+  const abs = resumeAbsPath(rel);
+  let entries;
+  try {
+    entries = await fs.readdir(abs, { withFileTypes: true });
+  } catch (err) {
+    if (err && err.code === "ENOENT") {
+      send(res, 404, { error: "Directory not found" });
+      return;
+    }
+    throw err;
+  }
+
   const files = [];
   for (const entry of entries) {
-    if (!entry.isFile()) continue;
     if (entry.name.startsWith(".")) continue;
+    const childRel = rel ? `${rel}/${entry.name}` : entry.name;
+    const childAbs = path.join(abs, entry.name);
+    if (entry.isDirectory()) {
+      let count = 0;
+      try {
+        const kids = await fs.readdir(childAbs);
+        count = kids.filter((n) => !n.startsWith(".")).length;
+      } catch {
+        count = 0;
+      }
+      files.push({
+        name: entry.name,
+        path: childRel,
+        type: "dir",
+        kind: "folder",
+        count,
+        mtime: (await fs.stat(childAbs)).mtime.toISOString(),
+      });
+      continue;
+    }
+    if (!entry.isFile()) continue;
     const ext = path.extname(entry.name).toLowerCase();
-    const stat = await fs.stat(path.join(RESUME_DIR, entry.name));
+    const kind = resumeKind(ext);
+    const stat = await fs.stat(childAbs);
     files.push({
       name: entry.name,
+      path: childRel,
+      type: "file",
       size: stat.size,
       mtime: stat.mtime.toISOString(),
       ext,
-      kind: resumeKind(ext),
-      url: `/resume-files/${encodeURIComponent(entry.name)}`,
+      kind,
+      imageType: kind === "image" ? imageTypeLabel(ext) : undefined,
+      url: resumePublicUrl(childRel),
     });
   }
-  files.sort((a, b) => b.mtime.localeCompare(a.mtime));
-  send(res, 200, { dir: "data/resume", files });
+
+  files.sort((a, b) => {
+    if (a.type !== b.type) return a.type === "dir" ? -1 : 1;
+    return a.name.localeCompare(b.name, "zh");
+  });
+
+  send(res, 200, {
+    root: "data/resume",
+    path: rel,
+    dir: rel ? `data/resume/${rel}` : "data/resume",
+    files,
+  });
 }
 
 async function handleResumeSave(req, res) {
@@ -175,29 +256,41 @@ async function handleResumeSave(req, res) {
       return;
     }
 
-    let filename = data.filename ? safeResumeName(String(data.filename)) : null;
-    if (data.filename && !filename) {
-      send(res, 400, { error: "无效文件名" });
+    const folder = safeResumeRelPath(data.folder || "");
+    if (folder == null) {
+      send(res, 400, { error: "无效目录" });
       return;
     }
-    if (filename && path.extname(filename).toLowerCase() !== ".md") {
-      send(res, 400, { error: "仅支持保存为 .md 文件" });
-      return;
-    }
-    if (!filename) {
-      filename = `${slugNoteBase(title)}_${Date.now().toString(36)}.md`;
-      if (!safeResumeName(filename)) {
-        filename = `note_${Date.now().toString(36)}.md`;
+
+    let filename = null;
+    if (data.filename) {
+      filename = safeResumeRelPath(String(data.filename));
+      if (filename == null) {
+        send(res, 400, { error: "无效文件名" });
+        return;
+      }
+      if (path.extname(filename).toLowerCase() !== ".md") {
+        send(res, 400, { error: "仅支持保存为 .md 文件" });
+        return;
+      }
+    } else {
+      let base = `${slugNoteBase(title)}_${Date.now().toString(36)}.md`;
+      filename = folder ? `${folder}/${base}` : base;
+      if (safeResumeRelPath(filename) == null) {
+        base = `note_${Date.now().toString(36)}.md`;
+        filename = folder ? `${folder}/${base}` : base;
       }
     }
 
     await ensureDirs();
+    const abs = resumeAbsPath(filename);
+    await fs.mkdir(path.dirname(abs), { recursive: true });
     const content = `${title}\n\n---\n\n${body.replace(/\s+$/, "")}\n`;
-    await fs.writeFile(path.join(RESUME_DIR, filename), content, "utf8");
+    await fs.writeFile(abs, content, "utf8");
     send(res, 200, {
       ok: true,
       filename,
-      url: `/resume-files/${encodeURIComponent(filename)}`,
+      url: resumePublicUrl(filename),
       path: `data/resume/${filename}`,
     });
   } catch (err) {
@@ -217,20 +310,21 @@ async function handleResumeApi(req, res) {
   send(res, 405, { error: "Method not allowed" });
 }
 
-async function serveResumeFile(req, res, filename) {
-  const safe = safeResumeName(filename);
-  if (!safe) {
+async function serveResumeFile(req, res, relPath) {
+  const safe = safeResumeRelPath(relPath);
+  if (safe == null || safe === "") {
     send(res, 400, { error: "Invalid filename" });
     return;
   }
-  const filePath = path.join(RESUME_DIR, safe);
+  const filePath = resumeAbsPath(safe);
   try {
     const data = await fs.readFile(filePath);
     const ext = path.extname(safe).toLowerCase();
     const type = MIME[ext] || "application/octet-stream";
+    const baseName = path.basename(safe);
     res.writeHead(200, {
       "Content-Type": type,
-      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(safe)}`,
+      "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(baseName)}`,
     });
     res.end(data);
   } catch (err) {
@@ -409,13 +503,13 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    const resumeFile = pathname.match(/^\/resume-files\/([^/]+)$/);
-    if (resumeFile) {
+    if (pathname.startsWith("/resume-files/")) {
       if (req.method !== "GET" && req.method !== "HEAD") {
         send(res, 405, { error: "Method not allowed" });
         return;
       }
-      await serveResumeFile(req, res, decodeURIComponent(resumeFile[1]));
+      const rel = decodeURIComponent(pathname.slice("/resume-files/".length));
+      await serveResumeFile(req, res, rel);
       return;
     }
 

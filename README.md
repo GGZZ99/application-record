@@ -9,6 +9,18 @@
 
 ---
 
+## 界面预览
+
+**应聘记录** — 投递列表、状态筛选、截图粘贴
+
+![应聘记录界面](docs/screenshot-records.png)
+
+**我的简历** — 左侧文件列表（支持文件夹），右侧预览
+
+![我的简历界面](docs/screenshot-resume.png)
+
+---
+
 ## 功能
 
 ### 应聘记录
@@ -25,7 +37,7 @@
 ### 我的简历
 - 顶部菜单切换进入
 - 左侧文件列表，右侧半屏预览（顶到底）
-- 支持预览：PDF、Word（`.docx`）、图片、文本
+- 支持文件夹浏览；可预览 PDF、Word（`.docx`）、图片、文本
 - **新增记录**：右侧 Markdown 工作区，可切换编辑 / 预览  
   - 第一行是标题  
   - 虚线下方是正文  
@@ -96,6 +108,9 @@ application-record/
 │   ├── app.js
 │   ├── styles.css
 │   └── favicon.svg
+├── docs/                     # README 截图
+│   ├── screenshot-records.png
+│   └── screenshot-resume.png
 ├── data/
 │   ├── store.example.json    # 默认字段模板
 │   ├── screenshots/          # 截图（运行时生成）

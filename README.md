@@ -15,6 +15,10 @@
 
 ![应聘记录界面](docs/screenshot-records.png)
 
+**新增记录** — 填写投递信息，支持粘贴 / 拖入截图
+
+![新增记录界面](docs/screenshot-add-record.png)
+
 **我的简历** — 左侧文件列表（支持文件夹），右侧预览
 
 ![我的简历界面](docs/screenshot-resume.png)
@@ -110,6 +114,7 @@ application-record/
 │   └── favicon.svg
 ├── docs/                     # README 截图
 │   ├── screenshot-records.png
+│   ├── screenshot-add-record.png
 │   └── screenshot-resume.png
 ├── data/
 │   ├── store.example.json    # 默认字段模板

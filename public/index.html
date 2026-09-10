@@ -25,6 +25,9 @@
           <button type="button" class="nav-tab" id="nav-resume" data-view="resume">
             我的简历
           </button>
+          <button type="button" class="nav-tab" id="nav-profile" data-view="profile">
+            网申资料
+          </button>
         </nav>
       </header>
 
@@ -90,6 +93,109 @@
               <p>点「新增记录」写 Markdown 笔记，或将 PDF / Word / 图片放到 <code>data/resume/</code>。</p>
             </div>
           </section>
+        </div>
+      </section>
+
+      <section id="view-profile" class="view view-profile" hidden>
+        <div class="helper-banner" id="helper-banner">
+          <div>
+            <h2>启用网申填写助手</h2>
+            <p>
+              Chrome 不允许程序悄悄安装扩展。双击 start.bat 时会尝试自动加载；若当前 Chrome 已经打开，请按下面步骤<strong>加载一次</strong>，之后会保留。
+            </p>
+            <ol>
+              <li>地址栏打开 <code>chrome://extensions</code>，打开右上角「开发者模式」</li>
+              <li>点击「加载已解压的扩展程序」，选择下面这个<strong>本机项目里的</strong>文件夹</li>
+              <li>回到本页刷新。网申页面点扩展图标即可弹出候选填写</li>
+            </ol>
+            <p class="helper-path-label">当前项目中的扩展目录（本机路径，随项目位置变化）</p>
+            <p class="helper-path" id="helper-path">正在读取本机路径…</p>
+            <div class="helper-actions">
+              <button type="button" class="btn btn-primary" id="btn-copy-ext">复制文件夹路径</button>
+              <button type="button" class="btn btn-ghost" id="btn-dismiss-helper">暂时隐藏</button>
+            </div>
+          </div>
+        </div>
+        <p class="helper-connected" id="helper-connected" hidden>网申助手已连接。打开招聘网站后点击工具栏图标，再点输入框即可填入。</p>
+        <div class="helper-toggle" id="helper-toggle" hidden>
+          <p>安装说明已隐藏。需要加载扩展或复制路径时，点右边打开。</p>
+          <button type="button" class="btn btn-secondary" id="btn-show-helper">打开安装说明</button>
+        </div>
+
+        <div class="view-toolbar">
+          <div class="toolbar profile-toolbar-start">
+            <button type="button" class="btn btn-primary" id="btn-profile-import">导入</button>
+            <button type="button" class="btn btn-ghost" id="btn-profile-export">导出</button>
+            <p class="view-meta" id="profile-count">加载中…</p>
+          </div>
+          <div class="toolbar">
+            <label class="search-field">
+              <span class="sr-only">搜索资料</span>
+              <input id="profile-search" type="search" placeholder="搜索姓名 / 学校 / 项目" autocomplete="off" />
+            </label>
+            <nav id="profile-nav" class="profile-view-nav" aria-label="资料视图">
+              <button type="button" data-view="all" aria-pressed="true">全部</button>
+              <button type="button" data-view="dates" aria-pressed="false">日期</button>
+              <button type="button" data-view="pending" aria-pressed="false">待确认</button>
+            </nav>
+            <button type="button" class="btn btn-ghost" id="btn-show-helper-toolbar">安装扩展</button>
+            <button type="button" class="btn btn-primary" id="btn-profile-add">新增字段</button>
+          </div>
+        </div>
+        <div id="profile-entries" class="profile-entries"></div>
+        <details class="profile-help">
+          <summary>资料存在哪、如何导入</summary>
+          <div class="profile-help-body">
+            <h3>保存在本机哪个文件</h3>
+            <p>都在项目的 <code>data/</code> 目录里，不会上传到网络。</p>
+            <ul>
+              <li><code>data/profile.json</code>：本页的网申填写资料（姓名、教育、项目等）</li>
+              <li><code>data/store.json</code>：应聘记录列表</li>
+              <li><code>data/resume/</code>：简历原件与笔记</li>
+              <li><code>data/screenshots/</code>：投递截图</li>
+            </ul>
+            <p>首次启动会从 <code>data/profile.example.json</code> 复制一份空模板生成 <code>profile.json</code>。个人文件已加入 <code>.gitignore</code>，提交仓库时不会带上你的内容。</p>
+
+            <h3>导入格式</h3>
+            <p>请导入 UTF-8 的 <code>.json</code> 文件，与点「导出资料」得到的备份相同。导入会<strong>整份替换</strong>当前网申资料，建议先导出备份。</p>
+            <p>根对象必须是：</p>
+            <pre>{
+  "version": 1,
+  "entries": [ /* 最多 1000 条 */ ]
+}</pre>
+            <p>每条 <code>entries</code> 字段：</p>
+            <ul>
+              <li><code>id</code>：字符串，不能重复（可用 <code>basic-name</code> 或 UUID）</li>
+              <li><code>group</code>：分组名，如 <code>基本信息</code>、<code>硕士</code>、<code>项目：示例项目</code></li>
+              <li><code>label</code>：字段名称，如 <code>姓名</code></li>
+              <li><code>value</code>：填写内容，空字符串表示未填</li>
+              <li><code>aliases</code>：字符串数组，网申识别别名，如 <code>["名字", "name"]</code></li>
+              <li><code>source</code>：备注，会显示在字段下方；没有备注必须是空字符串，不要填「简历」</li>
+              <li><code>date</code>：布尔值，<code>true</code> 表示日期备忘、不自动填入</li>
+              <li><code>pending</code>：布尔值，<code>true</code> 表示待确认、暂不推荐填入</li>
+            </ul>
+            <p>示例（一条）：</p>
+            <pre>{
+  "version": 1,
+  "entries": [
+    {
+      "id": "basic-name",
+      "group": "基本信息",
+      "label": "姓名",
+      "value": "张三",
+      "aliases": ["名字", "name"],
+      "source": "",
+      "date": false,
+      "pending": false
+    }
+  ]
+}</pre>
+            <p>也可以把简历和提示词发给 DeepSeek，把生成的 JSON 粘贴到「导入」弹窗中。</p>
+            <p>最省事的做法：先点「导出」得到标准文件，改里面的 <code>value</code> 后再导入。</p>
+          </div>
+        </details>
+        <div class="profile-footer-actions">
+          <button type="button" class="btn btn-danger-ghost" id="btn-profile-clear">清空</button>
         </div>
       </section>
     </div>
@@ -170,6 +276,117 @@
       </div>
     </div>
 
+    <!-- Profile import -->
+    <div class="modal-root" id="profile-import-modal" hidden>
+      <div class="modal-backdrop" data-close="profileImport"></div>
+      <div class="modal sheet sheet-wide" role="dialog" aria-modal="true" aria-labelledby="profile-import-title">
+        <header class="modal-header">
+          <h2 id="profile-import-title">导入网申资料</h2>
+          <button type="button" class="icon-btn" data-close="profileImport" aria-label="关闭">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+        <div class="modal-body profile-import-body">
+          <p class="profile-import-lead">把<strong>简历</strong>和下面这段<strong>提示词</strong>一起发给 DeepSeek，让它按示例格式生成 JSON。把生成结果粘贴到下方输入框，点确定即可导入。<code>source</code> 是字段下方的备注，一般必须是空字符串，不要写成「简历」。</p>
+          <label class="profile-import-prompt-label">
+            <span>发给 DeepSeek 的提示词</span>
+            <button type="button" class="btn btn-ghost" id="btn-copy-deepseek-prompt">复制提示词</button>
+          </label>
+          <textarea id="deepseek-prompt" class="profile-import-prompt" readonly rows="22">请根据我同时发送的简历，生成一份网申资料 JSON。只输出 JSON，不要解释，不要用 Markdown 代码块包裹。
+
+必须严格按下面的示例结构输出。每条字段都要有这些键：id、group、label、value、aliases、source、date、pending。
+
+特别注意 source：
+- source 是给用户看的备注，会显示在字段下方的黄色小字
+- 绝大多数必须是空字符串 ""
+- 禁止填写「简历」「来自简历」「根据简历提取」「resume」等来源说明
+- 只有真正需要提醒用户时才写，例如「待核实」
+
+示例（请照这个格式写完整 entries，value 换成简历里的真实内容；简历没有的信息 value 用 ""，不要编造身份证号、手机号、邮箱）：
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "basic-name",
+      "group": "基本信息",
+      "label": "姓名",
+      "value": "张三",
+      "aliases": ["名字", "真实姓名", "fullname", "name"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "date-birth",
+      "group": "个人日期",
+      "label": "出生日期",
+      "value": "1999-08-15",
+      "aliases": ["生日", "出生年月", "birthday"],
+      "source": "",
+      "date": true,
+      "pending": false
+    },
+    {
+      "id": "master-school",
+      "group": "硕士",
+      "label": "学校名称",
+      "value": "某某大学",
+      "aliases": ["院校", "毕业院校", "university", "school"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "project-1-name",
+      "group": "项目：智能客服系统",
+      "label": "项目名称",
+      "value": "智能客服系统",
+      "aliases": ["项目名", "projectname"],
+      "source": "",
+      "date": false,
+      "pending": false
+    }
+  ]
+}
+
+分组规则：
+- 基本信息、个人日期
+- 教育：硕士、本科、高中（不要写成“教育经历”）
+- 项目：每个项目单独分组，group 必须是「项目：项目名称」，同一项目的字段用同一个 group
+- 专业技能、语言证书、证书荣誉、求职偏好、长文本
+- 家庭：父亲、母亲
+- 紧急联系人
+
+请尽量覆盖这些字段（没有就 value=""，source 一律 ""）：
+基本信息：姓名、姓名拼音、性别、民族、政治面貌、身份证号、手机号码、电子邮箱、籍贯、户口所在地、现居住地、身高、体重、婚姻状况
+个人日期：出生日期（date=true）
+硕士/本科：学校名称、学院、专业、学历学位、教育起止日期（date=true）、成绩/GPA、导师
+高中：学校名称、教育起止日期（date=true）
+每个项目：项目名称、项目起止日期（date=true）、项目单位、项目角色、项目描述、项目职责
+专业技能：专业技能
+语言证书：英语四级、英语六级
+证书荣誉：证书荣誉
+求职偏好：期望城市、期望岗位、期望薪资
+长文本：自我评价
+父亲/母亲：家属姓名、联系电话、工作单位、职位
+紧急联系人：紧急联系人姓名、紧急联系电话、紧急联系人关系
+
+日期写法尽量用 YYYY-MM 或 YYYY-MM-DD，起止日期用「YYYY-MM 至 YYYY-MM」。
+aliases 请给出常见网申别名。date 和 pending 必须是布尔值 true/false，不要写成字符串。</textarea>
+          <label>
+            <span>把 DeepSeek 生成的 JSON 粘贴到这里</span>
+            <textarea id="profile-import-json" rows="10" placeholder='{"version":1,"entries":[...]}'></textarea>
+          </label>
+        </div>
+        <footer class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-close="profileImport">取消</button>
+          <button type="button" class="btn btn-primary" id="btn-profile-import-confirm">确定导入</button>
+        </footer>
+      </div>
+    </div>
+
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
     <div class="lightbox" id="lightbox" hidden>
@@ -183,6 +400,25 @@
         <img id="lightbox-img" alt="截图预览" />
       </figure>
     </div>
+
+    <dialog id="profile-editor">
+      <form id="profile-edit-form">
+        <h2 id="profile-editor-title">编辑资料</h2>
+        <label>分组<select name="group" required></select></label>
+        <label id="profile-new-group-row" hidden>新分组名称<input name="newGroup" maxlength="100" disabled /></label>
+        <label>字段名称<input name="label" required /></label>
+        <label>内容<textarea name="value" rows="6"></textarea></label>
+        <label>识别别名（逗号分隔）<input name="aliases" placeholder="例如：邮箱, email" /></label>
+        <label>来源 / 备注<textarea name="source" rows="3"></textarea></label>
+        <label class="check"><input name="date" type="checkbox" />日期，仅作提示，不自动填入</label>
+        <label class="check"><input name="pending" type="checkbox" />待确认，暂不推荐填入</label>
+        <div class="actions">
+          <button type="button" class="btn btn-danger-ghost" id="btn-profile-delete">删除</button>
+          <button type="button" class="btn btn-ghost" id="btn-profile-cancel">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </dialog>
 
     <script type="module" src="/app.js"></script>
   </body>

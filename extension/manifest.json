@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "网申资料助手",
+  "version": "1.1.0",
+  "description": "从应聘记录本地资料库匹配字段并填入网申表单。点击图标在当前页面启用。",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyo9j5pIaNtMuahf3hg7Sm2+GxHARy5atXV8xEE/8QMEl+MJd7y+JA2GvGWgOY+MRFLRqYhyifzClLG7DXp5+mRzECr6a4tUAf4tLZ6hbyYu90RHeOQ5O9GO3o6S46DqEXBhKDKFDcSm6LkuJj80kPm8kMkqnNYF6hVU/w2BGBjaH7hOqUT0FQrKbwaXqrFHBVN5XhSxgNxdEphf+jJt0WX3NDF01oLux/di++gRLl211lA5Z6qxHZIaagZuMQbeFr/eC2HgTPnHAoFM1UCxuA+LSJ43sZKfM5emzzpZ+o2RTnxpPFrQqSbERMdvuKvW1y/ygsPbe4PGV+odpFvbObQIDAQAB",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8787/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "启用网申助手"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://127.0.0.1:8787/*"],
+      "js": ["page-bridge.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "icons": {
+    "128": "icon.png"
+  },
+  "minimum_chrome_version": "116"
+}

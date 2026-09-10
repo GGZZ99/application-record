@@ -8,6 +8,7 @@ Desktop.ini
 
 # Personal runtime data (keep folder placeholders + example template)
 data/store.json
+data/profile.json
 data/screenshots/*
 !data/screenshots/.gitkeep
 data/resume/*

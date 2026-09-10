@@ -10,8 +10,11 @@ const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_DIR = path.join(ROOT, "data");
 const STORE_PATH = path.join(DATA_DIR, "store.json");
 const STORE_EXAMPLE_PATH = path.join(DATA_DIR, "store.example.json");
+const PROFILE_PATH = path.join(DATA_DIR, "profile.json");
+const PROFILE_EXAMPLE_PATH = path.join(DATA_DIR, "profile.example.json");
 const SCREENSHOTS_DIR = path.join(DATA_DIR, "screenshots");
 const RESUME_DIR = path.join(DATA_DIR, "resume");
+const EXTENSION_DIR = path.join(ROOT, "extension");
 const PORT = Number(process.env.PORT) || 8787;
 const HOST = "127.0.0.1";
 
@@ -98,6 +101,86 @@ async function writeStoreAtomic(data) {
   const text = `${JSON.stringify(data, null, 2)}\n`;
   await fs.writeFile(tmp, text, "utf8");
   await fs.rename(tmp, STORE_PATH);
+}
+
+function emptyProfile() {
+  return { version: 1, entries: [] };
+}
+
+function validateProfile(profile) {
+  if (!profile || profile.version !== 1 || !Array.isArray(profile.entries) || profile.entries.length > 1000) {
+    throw new Error("资料格式不正确");
+  }
+  const ids = new Set();
+  for (const entry of profile.entries) {
+    if (
+      !entry ||
+      !["id", "group", "label", "value"].every((k) => typeof entry[k] === "string") ||
+      !entry.id ||
+      ids.has(entry.id) ||
+      !Array.isArray(entry.aliases) ||
+      !entry.aliases.every((x) => typeof x === "string") ||
+      (entry.source !== undefined && typeof entry.source !== "string") ||
+      ["date", "pending"].some((k) => typeof entry[k] !== "boolean") ||
+      entry.value.length > 30000
+    ) {
+      throw new Error("资料字段不正确或编号重复");
+    }
+    ids.add(entry.id);
+  }
+  return profile;
+}
+
+async function ensureProfile() {
+  await ensureDirs();
+  try {
+    await fs.access(PROFILE_PATH);
+  } catch {
+    try {
+      await fs.copyFile(PROFILE_EXAMPLE_PATH, PROFILE_PATH);
+    } catch {
+      await fs.writeFile(PROFILE_PATH, `${JSON.stringify(emptyProfile(), null, 2)}\n`, "utf8");
+    }
+  }
+}
+
+async function readProfile() {
+  await ensureProfile();
+  const raw = await fs.readFile(PROFILE_PATH, "utf8");
+  return validateProfile(JSON.parse(raw));
+}
+
+async function writeProfileAtomic(data) {
+  await ensureProfile();
+  validateProfile(data);
+  const tmp = `${PROFILE_PATH}.${process.pid}.${Date.now()}.tmp`;
+  await fs.writeFile(tmp, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+  await fs.rename(tmp, PROFILE_PATH);
+}
+
+async function handleProfileApi(req, res) {
+  if (req.method === "GET" || req.method === "HEAD") {
+    send(res, 200, await readProfile());
+    return;
+  }
+  if (req.method === "PUT") {
+    let data;
+    try {
+      data = JSON.parse((await readBody(req)).toString("utf8"));
+    } catch {
+      send(res, 400, { error: "Invalid JSON" });
+      return;
+    }
+    try {
+      await writeProfileAtomic(data);
+    } catch (err) {
+      send(res, 400, { error: err.message || "Invalid profile" });
+      return;
+    }
+    send(res, 200, data);
+    return;
+  }
+  send(res, 405, { error: "Method not allowed" });
 }
 
 function safePublicPath(urlPath) {
@@ -498,6 +581,24 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (pathname === "/api/profile") {
+      await handleProfileApi(req, res);
+      return;
+    }
+
+    if (pathname === "/api/extension") {
+      if (req.method !== "GET" && req.method !== "HEAD") {
+        send(res, 405, { error: "Method not allowed" });
+        return;
+      }
+      send(res, 200, {
+        dir: path.resolve(EXTENSION_DIR),
+        relative: "extension",
+        name: "网申资料助手",
+      });
+      return;
+    }
+
     if (pathname === "/api/resume") {
       await handleResumeApi(req, res);
       return;
@@ -524,6 +625,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 await ensureStore();
+await ensureProfile();
 server.listen(PORT, HOST, () => {
   console.log(`Application Record running at http://${HOST}:${PORT}`);
 });

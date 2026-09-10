@@ -1,3 +1,5 @@
+import { initProfileView, loadProfileView } from "./profile.js";
+
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
@@ -23,10 +25,12 @@ const els = {
   fieldAddForm: $("#field-add-form"),
   optionsLabel: $("#options-label"),
   app: $(".app"),
-  viewRecords: $("#view-records"),
-  viewResume: $("#view-resume"),
   navRecords: $("#nav-records"),
   navResume: $("#nav-resume"),
+  navProfile: $("#nav-profile"),
+  viewRecords: $("#view-records"),
+  viewResume: $("#view-resume"),
+  viewProfile: $("#view-profile"),
   resumeFileList: $("#resume-file-list"),
   resumePreview: $("#resume-preview"),
   resumeOpenBtn: $("#btn-resume-open"),
@@ -40,6 +44,7 @@ const els = {
 const modalMap = {
   record: () => els.recordModal,
   fields: () => els.fieldsModal,
+  profileImport: () => $("#profile-import-modal"),
 };
 
 let resumeFiles = [];
@@ -444,25 +449,27 @@ function closeModal(kind) {
 }
 
 function setView(view) {
-  currentView = view === "resume" ? "resume" : "records";
+  currentView = view === "resume" ? "resume" : view === "profile" ? "profile" : "records";
   const isResume = currentView === "resume";
+  const isProfile = currentView === "profile";
 
-  els.viewRecords.hidden = isResume;
+  els.viewRecords.hidden = currentView !== "records";
   els.viewResume.hidden = !isResume;
+  if (els.viewProfile) els.viewProfile.hidden = !isProfile;
   els.app.classList.toggle("view-resume-mode", isResume);
   document.body.classList.toggle("resume-mode", isResume);
 
-  els.navRecords.classList.toggle("is-active", !isResume);
+  els.navRecords.classList.toggle("is-active", currentView === "records");
   els.navResume.classList.toggle("is-active", isResume);
-  if (isResume) {
-    els.navRecords.removeAttribute("aria-current");
-    els.navResume.setAttribute("aria-current", "page");
-  } else {
-    els.navResume.removeAttribute("aria-current");
-    els.navRecords.setAttribute("aria-current", "page");
-  }
+  els.navProfile?.classList.toggle("is-active", isProfile);
+  els.navRecords.removeAttribute("aria-current");
+  els.navResume.removeAttribute("aria-current");
+  els.navProfile?.removeAttribute("aria-current");
+  if (isResume) els.navResume.setAttribute("aria-current", "page");
+  else if (isProfile) els.navProfile?.setAttribute("aria-current", "page");
+  else els.navRecords.setAttribute("aria-current", "page");
 
-  document.title = isResume ? "我的简历" : "应聘记录";
+  document.title = isResume ? "我的简历" : isProfile ? "网申资料" : "应聘记录";
 }
 
 async function switchView(view) {
@@ -472,6 +479,13 @@ async function switchView(view) {
       await loadResumeList();
     } catch (err) {
       els.resumeFileList.innerHTML = `<li><p style="color:#b91c1c;margin:0">${escapeHtml(err.message)}</p></li>`;
+    }
+  }
+  if (view === "profile") {
+    try {
+      await loadProfileView();
+    } catch (err) {
+      toast(err.message || "无法读取网申资料", "error");
     }
   }
 }
@@ -1372,6 +1386,9 @@ function bindEvents() {
   els.navResume.addEventListener("click", () => {
     switchView("resume").catch((err) => toast(err.message || "打开失败", "error"));
   });
+  els.navProfile?.addEventListener("click", () => {
+    switchView("profile").catch((err) => toast(err.message || "打开失败", "error"));
+  });
   $("#btn-resume-new").addEventListener("click", () => startNewMdNote());
   $("#btn-resume-refresh").addEventListener("click", () => {
     loadResumeList(resumePath).catch((err) => toast(err.message || "刷新失败", "error"));
@@ -1439,10 +1456,14 @@ function bindEvents() {
 
 async function init() {
   bindEvents();
+  initProfileView({ toast, openModal, closeModal });
   syncOptionsVisibility();
   try {
     await loadStore();
     renderList();
+    if (new URLSearchParams(location.search).get("setup") === "extension") {
+      await switchView("profile");
+    }
   } catch (err) {
     els.count.textContent = "加载失败";
     els.listPanel.innerHTML = `

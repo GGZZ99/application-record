@@ -47,6 +47,15 @@
   - 虚线下方是正文  
   - 保存为 `data/resume/*.md`，并出现在左侧列表
 
+### 网申资料助手
+- 顶部切换到「网申资料」，按网申常见字段填写（姓名、身份证、教育、项目、家庭成员等）
+- 资料保存在 `data/profile.json`，与 Chrome 扩展共用
+- 打开招聘网站后点击扩展图标，再点输入框，从候选中填入（可撤销）
+- 日期字段只作备忘，不自动填入；插件不会提交表单
+
+双击 `start.bat` 时会用 Chrome/Edge 打开页面，并尝试用 `--load-extension` 加载 `extension/`。  
+Chrome **不允许**程序完全静默安装扩展：若浏览器已经在运行，参数会被忽略，请在「网申资料」页按提示加载一次（开发者模式 → 加载已解压的扩展程序）。加载成功后会保留。
+
 ---
 
 ## 环境要求
@@ -69,9 +78,13 @@ cd application-record
 
 ### 2. 启动
 
-双击项目根目录的 [`start.bat`](start.bat)，会自动启动服务并打开浏览器。
+双击项目根目录的 [`start.bat`](start.bat)，会自动启动服务并用 Chrome/Edge 打开。
 
-首次启动若没有 `data/store.json`，会从 [`data/store.example.json`](data/store.example.json) 自动生成一份（个人数据文件已加入 `.gitignore`，不会被提交）。
+首次启动会生成：
+- `data/store.json`（投递记录，来自 [`data/store.example.json`](data/store.example.json)）
+- `data/profile.json`（网申资料，来自 [`data/profile.example.json`](data/profile.example.json)）
+
+个人数据文件已加入 `.gitignore`，不会被提交。
 
 ---
 
@@ -85,6 +98,8 @@ cd application-record
 | 粘贴截图 | 聚焦截图区域后 `Ctrl+V`，或拖入图片 |
 | 管理简历 | 顶部切换到「我的简历」；把 PDF / Word / 图片放进 `data/resume/` 后点刷新 |
 | 写 Markdown 笔记 | 「我的简历」→「新增记录」→ 编辑 / 预览 → 保存 |
+| 填写网申资料 | 顶部切换到「网申资料」，补全模板字段 |
+| 网页填表 | 招聘页点击扩展图标启用，再点输入框选择候选 |
 
 ---
 
@@ -96,6 +111,8 @@ cd application-record
 |------|------|
 | `data/store.json` | 字段定义 + 投递记录（**个人数据，不提交**） |
 | `data/store.example.json` | 空模板（随仓库发布） |
+| `data/profile.json` | 网申填写资料（**个人数据，不提交**） |
+| `data/profile.example.json` | 网申字段模板（随仓库发布） |
 | `data/screenshots/` | 截图文件 |
 | `data/resume/` | 简历原件、Markdown 笔记 |
 
@@ -105,11 +122,15 @@ cd application-record
 
 ```
 application-record/
-├── start.bat                 # Windows 一键启动
+├── start.bat                 # Windows 一键启动（尝试加载 Chrome 扩展）
+├── scripts/
+│   └── open-browser.bat      # 用 Chrome/Edge 打开并 --load-extension
 ├── server.mjs                # 零依赖本地服务（静态页 + 读写 API）
+├── extension/                # 网申填写 Chrome 扩展（开发者模式加载）
 ├── public/                   # 前端页面
 │   ├── index.html
 │   ├── app.js
+│   ├── profile.js
 │   ├── styles.css
 │   └── favicon.svg
 ├── docs/                     # README 截图
@@ -117,7 +138,8 @@ application-record/
 │   ├── screenshot-add-record.png
 │   └── screenshot-resume.png
 ├── data/
-│   ├── store.example.json    # 默认字段模板
+│   ├── store.example.json    # 投递记录模板
+│   ├── profile.example.json  # 网申资料模板
 │   ├── screenshots/          # 截图（运行时生成）
 │   └── resume/               # 简历与笔记（自行放入 / 在线新建）
 ├── .gitignore
@@ -132,7 +154,10 @@ application-record/
 浏览器禁止网页直接写入本地磁盘。本工具需要保存 JSON、截图和笔记，因此用一个极简 Node 服务提供读写能力。
 
 **其他人 clone 后会看到我的投递记录吗？**  
-不会。`data/store.json`、截图和简历目录已在 `.gitignore` 中忽略；仓库里只有空的示例模板。
+不会。`data/store.json`、`data/profile.json`、截图和简历目录已在 `.gitignore` 中忽略；仓库里只有空的示例模板。
+
+**start.bat 之后扩展没出现？**  
+Chrome 不允许静默安装。请到「网申资料」页复制 `extension` 目录路径，在 `chrome://extensions` 打开开发者模式后「加载已解压的扩展程序」。若启动时 Chrome 尚未运行，`--load-extension` 可在当次会话生效。
 
 **Markdown / Word 预览打不开？**  
 预览依赖 CDN 脚本（marked / mammoth），首次使用需要能访问外网。PDF 与图片预览不依赖外网。

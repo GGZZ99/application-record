@@ -1,0 +1,555 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "basic-name",
+      "group": "基本信息",
+      "label": "姓名",
+      "value": "",
+      "aliases": ["名字", "真实姓名", "fullname", "realname", "name"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-pinyin",
+      "group": "基本信息",
+      "label": "姓名拼音",
+      "value": "",
+      "aliases": ["拼音", "英文名", "pinyin", "englishname"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-gender",
+      "group": "基本信息",
+      "label": "性别",
+      "value": "",
+      "aliases": ["gender", "sex"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-nation",
+      "group": "基本信息",
+      "label": "民族",
+      "value": "",
+      "aliases": ["nationality", "ethnicity"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-politics",
+      "group": "基本信息",
+      "label": "政治面貌",
+      "value": "",
+      "aliases": ["政治身份", "partystatus", "political"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-idcard",
+      "group": "基本信息",
+      "label": "身份证号",
+      "value": "",
+      "aliases": ["身份证", "身份证号码", "证件号码", "证件号", "idcard", "idnumber"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-phone",
+      "group": "基本信息",
+      "label": "手机号码",
+      "value": "",
+      "aliases": ["手机", "手机号", "电话", "联系电话", "mobile", "phone", "tel"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-email",
+      "group": "基本信息",
+      "label": "电子邮箱",
+      "value": "",
+      "aliases": ["邮箱", "邮件", "email", "e-mail", "mail"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-native",
+      "group": "基本信息",
+      "label": "籍贯",
+      "value": "",
+      "aliases": ["籍贯地", "nativeplace"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-hukou",
+      "group": "基本信息",
+      "label": "户口所在地",
+      "value": "",
+      "aliases": ["户籍", "户口", "hukou"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-address",
+      "group": "基本信息",
+      "label": "现居住地",
+      "value": "",
+      "aliases": ["现住址", "居住地", "联系地址", "通讯地址", "address"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-height",
+      "group": "基本信息",
+      "label": "身高",
+      "value": "",
+      "aliases": ["身高cm", "height"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-weight",
+      "group": "基本信息",
+      "label": "体重",
+      "value": "",
+      "aliases": ["体重kg", "weight"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "basic-marital",
+      "group": "基本信息",
+      "label": "婚姻状况",
+      "value": "",
+      "aliases": ["婚否", "marital"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "date-birth",
+      "group": "个人日期",
+      "label": "出生日期",
+      "value": "",
+      "aliases": ["生日", "出生年月", "birthday", "birthdate", "dob"],
+      "source": "",
+      "date": true,
+      "pending": false
+    },
+    {
+      "id": "master-school",
+      "group": "硕士",
+      "label": "学校名称",
+      "value": "",
+      "aliases": ["院校", "毕业院校", "学校", "university", "school", "college"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "master-college",
+      "group": "硕士",
+      "label": "学院",
+      "value": "",
+      "aliases": ["院系", "faculty"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "master-major",
+      "group": "硕士",
+      "label": "专业",
+      "value": "",
+      "aliases": ["所学专业", "major"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "master-degree",
+      "group": "硕士",
+      "label": "学历学位",
+      "value": "",
+      "aliases": ["学历", "学位", "degree", "education"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "master-dates",
+      "group": "硕士",
+      "label": "教育起止日期",
+      "value": "",
+      "aliases": ["就读时间", "入学毕业时间"],
+      "source": "",
+      "date": true,
+      "pending": false
+    },
+    {
+      "id": "master-gpa",
+      "group": "硕士",
+      "label": "成绩/GPA",
+      "value": "",
+      "aliases": ["GPA", "绩点", "平均分", "成绩"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "master-tutor",
+      "group": "硕士",
+      "label": "导师",
+      "value": "",
+      "aliases": ["指导教师", "导师姓名", "advisor", "supervisor"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "bachelor-school",
+      "group": "本科",
+      "label": "学校名称",
+      "value": "",
+      "aliases": ["院校", "毕业院校", "学校", "university", "school"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "bachelor-college",
+      "group": "本科",
+      "label": "学院",
+      "value": "",
+      "aliases": ["院系", "faculty"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "bachelor-major",
+      "group": "本科",
+      "label": "专业",
+      "value": "",
+      "aliases": ["所学专业", "major"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "bachelor-degree",
+      "group": "本科",
+      "label": "学历学位",
+      "value": "",
+      "aliases": ["学历", "学位", "degree"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "bachelor-dates",
+      "group": "本科",
+      "label": "教育起止日期",
+      "value": "",
+      "aliases": ["就读时间", "入学毕业时间"],
+      "source": "",
+      "date": true,
+      "pending": false
+    },
+    {
+      "id": "bachelor-gpa",
+      "group": "本科",
+      "label": "成绩/GPA",
+      "value": "",
+      "aliases": ["GPA", "绩点", "平均分", "成绩"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "highschool-school",
+      "group": "高中",
+      "label": "学校名称",
+      "value": "",
+      "aliases": ["高中学校", "中学"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "highschool-dates",
+      "group": "高中",
+      "label": "教育起止日期",
+      "value": "",
+      "aliases": ["就读时间"],
+      "source": "",
+      "date": true,
+      "pending": false
+    },
+    {
+      "id": "project-sample-name",
+      "group": "项目：示例项目",
+      "label": "项目名称",
+      "value": "",
+      "aliases": ["项目名", "projectname"],
+      "source": "把分组改成「项目：你的项目名」，同一项目的条目用同一个分组",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "project-sample-dates",
+      "group": "项目：示例项目",
+      "label": "项目起止日期",
+      "value": "",
+      "aliases": ["项目时间"],
+      "source": "",
+      "date": true,
+      "pending": false
+    },
+    {
+      "id": "project-sample-org",
+      "group": "项目：示例项目",
+      "label": "项目单位",
+      "value": "",
+      "aliases": ["项目公司", "所属单位"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "project-sample-role",
+      "group": "项目：示例项目",
+      "label": "项目角色",
+      "value": "",
+      "aliases": ["担任角色", "职务"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "project-sample-desc",
+      "group": "项目：示例项目",
+      "label": "项目描述",
+      "value": "",
+      "aliases": ["项目简介", "项目介绍"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "project-sample-duty",
+      "group": "项目：示例项目",
+      "label": "项目职责",
+      "value": "",
+      "aliases": ["工作内容", "主要职责"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "skill-pro",
+      "group": "专业技能",
+      "label": "专业技能",
+      "value": "",
+      "aliases": ["技能", "掌握技能", "skills"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "lang-cet4",
+      "group": "语言证书",
+      "label": "英语四级",
+      "value": "",
+      "aliases": ["CET4", "CET-4", "四级"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "lang-cet6",
+      "group": "语言证书",
+      "label": "英语六级",
+      "value": "",
+      "aliases": ["CET6", "CET-6", "六级"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "cert-honor",
+      "group": "证书荣誉",
+      "label": "证书荣誉",
+      "value": "",
+      "aliases": ["奖项", "荣誉", "证书"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "job-city",
+      "group": "求职偏好",
+      "label": "期望城市",
+      "value": "",
+      "aliases": ["意向城市", "工作城市", "city"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "job-position",
+      "group": "求职偏好",
+      "label": "期望岗位",
+      "value": "",
+      "aliases": ["意向岗位", "应聘岗位", "职位"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "job-salary",
+      "group": "求职偏好",
+      "label": "期望薪资",
+      "value": "",
+      "aliases": ["意向薪资", "薪资", "salary"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "text-eval",
+      "group": "长文本",
+      "label": "自我评价",
+      "value": "",
+      "aliases": ["个人评价", "自我介绍", "selfassessment"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "father-name",
+      "group": "父亲",
+      "label": "家属姓名",
+      "value": "",
+      "aliases": ["父亲姓名", "姓名"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "father-phone",
+      "group": "父亲",
+      "label": "联系电话",
+      "value": "",
+      "aliases": ["父亲电话", "电话"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "father-org",
+      "group": "父亲",
+      "label": "工作单位",
+      "value": "",
+      "aliases": ["父亲单位", "单位"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "father-pos",
+      "group": "父亲",
+      "label": "职位",
+      "value": "",
+      "aliases": ["父亲职位", "职务"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "mother-name",
+      "group": "母亲",
+      "label": "家属姓名",
+      "value": "",
+      "aliases": ["母亲姓名", "姓名"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "mother-phone",
+      "group": "母亲",
+      "label": "联系电话",
+      "value": "",
+      "aliases": ["母亲电话", "电话"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "mother-org",
+      "group": "母亲",
+      "label": "工作单位",
+      "value": "",
+      "aliases": ["母亲单位", "单位"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "mother-pos",
+      "group": "母亲",
+      "label": "职位",
+      "value": "",
+      "aliases": ["母亲职位", "职务"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "emergency-name",
+      "group": "紧急联系人",
+      "label": "紧急联系人姓名",
+      "value": "",
+      "aliases": ["紧急联系人", "emergencycontact"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "emergency-phone",
+      "group": "紧急联系人",
+      "label": "紧急联系电话",
+      "value": "",
+      "aliases": ["紧急电话", "emergencyphone"],
+      "source": "",
+      "date": false,
+      "pending": false
+    },
+    {
+      "id": "emergency-relation",
+      "group": "紧急联系人",
+      "label": "紧急联系人关系",
+      "value": "",
+      "aliases": ["与本人关系", "关系", "relationship"],
+      "source": "",
+      "date": false,
+      "pending": false
+    }
+  ]
+}
